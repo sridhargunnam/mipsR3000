@@ -1,0 +1,326 @@
+`timescale 1ns/1ps
+
+module test_MIPS();
+
+	logic [31:0] instr;
+	logic [31:0] pc;
+	logic [31:0] src0;
+	logic [31:0] src1;
+	logic [31:0] memRdData;
+	logic [31:0] memRdAddr;
+	logic memRdEn;
+	logic [31:0] memWrData ;
+	logic [31:0] memWrAddr;
+	logic memWrEn ;
+	logic [31:0] dst0;
+	logic [31:0] pcNxt;
+
+	Combcore MIPS (
+	.instr(instr),
+	.pc(pc),
+	.src0(src0),
+	.src1(src1),
+	.memRdData(memRdData),
+	.memRdAddr(memRdAddr),
+	.memRdEn(memRdEn),
+	.memWrData(memWrData) ,
+	.memWrAddr(memWrAddr),
+	.memWrEn(memWrEn) ,
+	.dst0(dst0),
+	.pcNxt(pcNxt)
+);
+
+	task add;
+	input logic signed [31:0] a;
+	input logic signed [31:0] b;
+	begin
+		src0 = a;
+		src1 = b;
+		instr = {6'h0, 5'b1, 5'b1, 5'b1, 5'b0, 6'h20};
+		$display("src0 = %h and src1 = %h \n", src0, src1);
+		#10;
+		$display("The value of dst0 is %h \n", dst0);
+		$display("pc: %d and pcNxt = %d \n", pc, pcNxt);
+		
+		#10;
+	end
+	endtask
+
+	task addi;
+	input logic signed [31:0] a;
+	input logic signed [15:0] b;
+	begin
+		src0 = a;
+		instr = {6'h8, 5'b1, 5'b1, {b}};
+		#10;
+	end
+	endtask
+
+	task anded;
+	input logic signed [31:0] a;
+	input logic signed [15:0] b;
+	begin
+		src0 = a;
+		src1 = b;
+		instr = {6'h0, 5'b1, 5'b1, 5'b1, 5'b0, 6'h24};
+		#10;
+	end
+	endtask
+
+	task andi;
+	input logic signed [31:0] a;
+	input logic signed [15:0] b;
+	begin
+		src0 = a;
+		instr = {6'h0C, 5'b1, 5'b1, {b}};
+		#10;
+	end
+	endtask
+
+	task beq;
+	input logic signed [31:0] a;
+	input logic signed [31:0] b;
+	begin
+		src0 = a;
+		src1 = b;
+		instr = {6'h04, 5'b1, 5'b1, 16'h1000};
+		$display("src0 is %h src1 is %h offset is %h \n", src0,src1, instr[15:0]);
+		//#10;
+		$display("pc: %d and pcNxt = %d \n", pc, pcNxt);
+		#10;
+	end
+	endtask
+
+	task bgtz;
+	input logic signed [31:0] a;
+	begin
+		src0 = a;
+		instr = {6'h07, 5'b1, 5'b0, 16'h1000};
+		#10;
+	end
+	endtask
+
+	task bne;
+	input logic signed [31:0] a;
+	input logic signed [31:0] b;
+	begin
+		src0 = a;
+		src1 = b;
+		instr = {6'h05, 5'b1, 5'b1, 16'h1000};
+		#10;
+	end
+	endtask
+
+	task load;
+	input logic signed [31:0] a;
+	input logic signed [15:0] b;
+	begin
+		src0 = a;
+		instr = {6'h23, 5'b1, 5'b1, {b}};
+		memRdData = 32'hABCDABCD;
+		#10;
+	end
+	endtask
+
+	task nored;
+	input logic signed [31:0] a;
+	input logic signed [31:0] b;
+	begin
+		src0 = a;
+		src1 = b;
+		instr = {6'h0, 5'b1, 5'b1, 5'b1, 5'b0, 6'h27};
+		#10;
+	end
+	endtask
+
+	task ored;
+	input logic signed [31:0] a;
+	input logic signed [31:0] b;
+	begin
+		src0 = a;
+		src1 = b;
+		instr = {6'h0, 5'b1, 5'b1, 5'b1, 5'b0, 6'h25};
+		#10;
+	end
+	endtask
+	
+	task slt;
+	input logic signed [31:0] a;
+	input logic signed [31:0] b;
+	begin
+		src0 = a;
+		src1 = b;
+		instr = {6'h0, 5'b1, 5'b1, 5'b1, 5'b0, 6'h2A};
+		#10;
+	end
+	endtask
+
+	task slti;
+	input logic signed [31:0] a;
+	input logic signed [15:0] b;
+	begin
+		src0 = a;
+		instr = {6'h0A, 5'b1, 5'b1, {b}};
+		#10;
+	end
+	endtask
+
+	task sra;
+	input logic signed [31:0] a;
+	input logic [4:0] b;
+	begin
+		src1 = a;
+		instr = {6'h0, 5'h0, 5'b1, 5'b1, {b}, 6'h03};
+		#10;
+	end
+	endtask
+	
+	task sub;
+	input logic signed [31:0] a;
+	input logic signed [31:0] b;
+	begin
+		src0 = a;
+		src1 = b;
+		instr = {6'h0, 5'b1, 5'b1, 5'b1, 5'b0, 6'h22};
+		#10;
+	end
+	endtask
+
+	task store;
+	input logic signed [31:0] a;
+	input logic signed [31:0] b;
+	begin
+		src0 = a;
+	        src1 = b;
+		instr = {6'h2B, 5'b1, 5'b1, 16'd7};
+		#10;
+	end
+	endtask
+
+	task xored;
+	input logic signed [31:0] a;
+	input logic signed [31:0] b;
+	begin
+		src0 = a;
+		src1 = b;
+		instr = {6'h0, 5'b1, 5'b1, 5'b1, 5'h0, 6'h26};
+		#10;
+	end
+	endtask
+
+	task xori;
+	input logic signed [31:0] a;
+	input logic signed [15:0] b;
+	begin
+		src0 = a;
+		instr = {6'h0E, 5'b1, 5'b1, {b}};
+		#10;
+	end
+	endtask
+
+	always@(pcNxt)
+		#10 pc = pcNxt;
+	
+
+	initial
+	begin
+		pc = 32'b1000;
+		src0 = 32'b0;
+		src1 = 32'b0;
+		instr = 32'b0;
+		memRdData = 32'b0;
+	        //add
+		/*add(32'hFFFFFFFF, 32'hFFFFFFFF);
+		add(32'hFFFFFFFF, 32'h0);
+		add(32'h0, 32'h0);
+		add(32'hAAAA5555, 32'h5555AAAA);
+		add($random, $random); 
+
+		//addi
+		/*addi($random, $random);
+		addi(32'h0, $random);
+
+		//and
+		anded(32'hFFFFFFFF, 32'hFFFFFFFF);
+		anded(32'h0, 32'h0);
+		anded(32'hFFFFFFFF, 32'h0);
+
+		//andi
+		andi($random, $random);
+		andi(32'h0, $random); 
+
+		//beq
+		beq(32'h12341234, 32'hABCDABCD); //FAIL
+		beq(32'h12345678,32'h12345678); //PASS 
+		
+		//pc = 0;
+
+		//bgtz
+		bgtz(32'h0DADBEEF);	//pass
+		bgtz(32'h8DADBEEF); 	//fail
+		bgtz(32'h80000000);	//fail
+		bgtz(32'h00000000);	//fail 
+		
+		//bne
+		bne(32'h100, 32'h200);	//pass
+		bne(32'h300, 32'h300); 	//fail 
+
+		pc = 0;
+
+		//j
+		instr = {6'h02, 26'h10000};
+		#10;
+		instr = {6'h02, 26'h20000};
+		#10; 
+		
+		//jr
+		src0 = 32'h1000;
+		instr = {6'h0, src0, 15'b0, 6'h8};
+		pc = 0;
+
+		//lw
+		load(32'h1000, 16'h7); 
+
+		//nor
+		nored(32'b11, 32'b101);
+		//or
+		ored(32'b11, 32'b101);
+
+		//slt
+		slt(32'h5, 32'h9);	//pass
+		slt(32'h9, 32'h6);	//fail
+
+		//slti
+		slti(32'h5, 16'h6);	//pass
+		slti(32'h5, 16'h3);	//fail
+
+		//sra
+		sra(32'hFF, 7);
+
+		//sub
+		sub(32'h0, 32'h1); 
+		//sub(32'hFFFFFFFF, 32'hFFFFFFFF); */
+
+		//sw
+		store(32'h1000, 32'hDEADDEAD);
+
+		//xor
+		//xored($random, $random); 
+		//xori
+		//xori(32'b0011, 16'b0011); 
+	end
+
+endmodule
+
+		
+	
+		
+
+		
+		 
+
+		
+	   
+
+	
+
